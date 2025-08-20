@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: catalogue
-        image: mohanvamsi011/catalogue:v1
+        image: {{ .Values.deployment.imageURL }}:{{ .Values.deployment.imageVersion }}
         #command: ["sh", "-c", "echo 'failure' && exit 1"]
         envFrom:
         - configMapRef:
