@@ -39,24 +39,26 @@ pipeline {
         stage ('Deploy Status') {
             steps {
                 script {
-                    def deploymentStatus = sh(returnStdout: true, script: "kubectl rollout status deployment/$COMPONENT --request-timeout=30s || echo FAILED...").trim()
-                    if (deploymentStatus.contains("successfully rolled out")) {
-                        echo "Deployment is Success"
-                    } 
-                    else {
-                        echo "Deployment FAILED..."
-                        sh """
-                            helm rollback $COMPONENT -n $PROJECT
-                            sleep 20
-                        """
-                        def rollbackStatus = sh(returnStdout: true, script: "kubectl rollout status deployment/$COMPONENT --request-timeout=30s || echo FAILED...").trim()
-                        if (rollbackStatus.contains("successfully rolled out")) {
-                        error "Deployment is Failure, Rollback is Success.."
-                        }
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+                        def deploymentStatus = sh(returnStdout: true, script: "kubectl rollout status deployment/$COMPONENT --request-timeout=30s || echo FAILED...").trim()
+                        if (deploymentStatus.contains("successfully rolled out")) {
+                            echo "Deployment is Success"
+                        } 
                         else {
-                        error "Deployment is Failure, Rollback is Failure, Application is not running"
+                            echo "Deployment FAILED..."
+                            sh """
+                                helm rollback $COMPONENT -n $PROJECT
+                                sleep 20
+                            """
+                            def rollbackStatus = sh(returnStdout: true, script: "kubectl rollout status deployment/$COMPONENT --request-timeout=30s || echo FAILED...").trim()
+                            if (rollbackStatus.contains("successfully rolled out")) {
+                            error "Deployment is Failure, Rollback is Success.."
+                            }
+                            else {
+                            error "Deployment is Failure, Rollback is Failure, Application is not running"
+                            }
                         }
-                    }    
+                    }
                 }
             }
         }
