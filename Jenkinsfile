@@ -39,7 +39,7 @@ pipeline {
         stage ('Deploy Status') {
             steps {
                 script {
-                    def deploymentStatus = sh(returnstdout; true script: "kubectl rollout status deployment/catalogue --request-timeout=30s || echo FAILED...").trim()
+                    def deploymentStatus = sh(returnstdout: true script: "kubectl rollout status deployment/catalogue --request-timeout=30s || echo FAILED...").trim()
                     if (deploymentStatus.contains("successfully rolled out")) {
                         echo "Deployment is Success"
                     }
